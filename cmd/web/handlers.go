@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -13,7 +14,25 @@ func home(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	w.Write([]byte("Hello from quote-memorizer"))
+
+	files := []string{
+		"./ui/html/home.page.tmpl",
+		"./ui/html/base.layout.tmpl",
+		"./ui/html/footer.partial.tmpl",
+	}
+
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	err = ts.Execute(w, nil)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+	}
 }
 
 // showQuote is quote show handler function.
@@ -43,18 +62,4 @@ func createQuote(w http.ResponseWriter, r *http.Request) {
 		return 
 	}
 	w.Write([]byte("Form to create new quote"))
-}
-
-func main() {
-	// mux uses http.NewServeMux() method to initialize new router, 
-	//  and registers home function as handler to URL template "/".
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/quote", showQuote)
-	mux.HandleFunc("/quote/create", createQuote)
-
-	// Server startup
-	log.Println("Server is running on http://127.0.0.1:4000")
-	err := http.ListenAndServe(":4000", mux)
-	log.Fatal(err)
 }
