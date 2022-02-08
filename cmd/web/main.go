@@ -1,29 +1,41 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 )
 
 func main() {
+
+	addr := flag.String("addr", ":4000", "Network HTTP address")
+	flag.Parse()
+
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
 	mux.HandleFunc("/quote", showQuote)
 	mux.HandleFunc("/quote/create", createQuote)
 
-	fileServer := http.FileServer(http.Dir("./ui/static/"))
+	fileServer := http.FileServer(restrictedFileSystem{http.Dir("./ui/static/")})
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 	mux.Handle("/static", http.NotFoundHandler())
 	
+	srv := &http.Server{
+		Addr: *addr,
+		ErrorLog: errorLog,
+		Handler: mux,
+	}
 
-	log.Println("Server is running on http://127.0.0.1:4000")
-	err := http.ListenAndServe(":4000", mux)
-	log.Fatal(err)
+	infoLog.Printf("Server is running on %s", *addr)
+	err := srv.ListenAndServe()
+	errorLog.Fatal(err)
 }
 
-
-// TODO Fix "type restrictedFileSystem is unused (U1000)"
 type restrictedFileSystem struct {
 	fs http.FileSystem
 }
