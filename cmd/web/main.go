@@ -8,6 +8,11 @@ import (
 	"path/filepath"
 )
 
+type application struct {
+	errorLog *log.Logger
+	infoLog *log.Logger
+}
+
 func main() {
 
 	addr := flag.String("addr", ":4000", "Network HTTP address")
@@ -16,19 +21,15 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/quote", showQuote)
-	mux.HandleFunc("/quote/create", createQuote)
+	app := &application{
+		errorLog: errorLog,
+		infoLog: infoLog,
+	}
 
-	fileServer := http.FileServer(restrictedFileSystem{http.Dir("./ui/static/")})
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-	mux.Handle("/static", http.NotFoundHandler())
-	
 	srv := &http.Server{
 		Addr: *addr,
 		ErrorLog: errorLog,
-		Handler: mux,
+		Handler: app.routes(),
 	}
 
 	infoLog.Printf("Server is running on %s", *addr)
