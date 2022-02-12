@@ -1,10 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
+
+	"github.com/Twofold-One/quote-memorizer/pkg/models"
 )
 
 // home is main page handler function.
@@ -34,29 +37,41 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 // showQuote is quote show handler function.
 func (app *application) showQuote(w http.ResponseWriter, r *http.Request) {
-	// get id from request, convert it to int and check if
-	// value less than 1 response 404
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
 		app.NotFound(w)
 		return
 	}
 
-	fmt.Fprintf(w, "Show chosen quote with ID %d...\n", id)
+	q, err := app.quotes.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.NotFound(w)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+
+	fmt.Fprintf(w, "%v", q)
 }
 
 // createQuote is quote creation handler function.
 func (app *application) createQuote(w http.ResponseWriter, r *http.Request) {
-
-
-	// r.Method checks if request is POST.
 	if r.Method != http.MethodPost {
-
-		// Header().Set() adds "Allow: POST" to the header
 		w.Header().Set("Allow", http.MethodPost)
-		// http.Error sends status code and a message
 		app.clientError(w, http.StatusMethodNotAllowed)
 		return 
 	}
-	w.Write([]byte("Form to create new quote"))
+
+	author := "Friedrich Nietzsche"
+	quote := "Without music, life would be a mistake."
+
+	id, err := app.quotes.Insert(author, quote)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/quote?id=%d", id), http.StatusSeeOther)
 }

@@ -9,18 +9,21 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/Twofold-One/quote-memorizer/pkg/models/postgresql"
+
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 type application struct {
 	errorLog *log.Logger
 	infoLog *log.Logger
+	quotes *postgresql.QuoteModel
 }
 
 func main() {
 
 	addr := flag.String("addr", ":4000", "Network HTTP address")
-	dsn := flag.String("dsn", "postgresql://user:pass@localhost:5432/quotes", "DB Source path")
+	dsn := flag.String("dsn", "postgresql://user:pass@localhost:5432/quote-memorizer", "DB Source path")
 	flag.Parse()
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
@@ -41,6 +44,7 @@ func main() {
 	app := &application{
 		errorLog: errorLog,
 		infoLog: infoLog,
+		quotes: &postgresql.QuoteModel{DB: db},
 	}
 
 	srv := &http.Server{
