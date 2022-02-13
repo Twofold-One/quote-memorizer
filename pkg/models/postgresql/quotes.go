@@ -53,5 +53,26 @@ func (m *QuoteModel) Get(id int) (*models.Quote, error) {
 }
 
 func (m *QuoteModel) Latest() ([]*models.Quote, error) {
-	return nil, nil
+	stmt := `select id, author, quote, created from quotes
+	order by created desc limit 10`
+	rows, err := m.DB.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var quotes []*models.Quote
+
+	for rows.Next() {
+		q := &models.Quote{}
+		err = rows.Scan(&q.ID, &q.Author, &q.Quote, &q.Created)
+		if err != nil {
+			return nil, err
+		}
+		quotes = append(quotes, q)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return quotes, nil
 }
