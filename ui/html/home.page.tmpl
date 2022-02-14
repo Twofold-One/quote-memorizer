@@ -4,5 +4,28 @@
 
 {{define "main"}}
 <h2>Last saved quote</h2>
+{{if .Quotes}}
+<table>
+  <tr>
+    <th>Header</th>
+    <th>Created</th>
+    <th>ID</th>
+  </tr>
+  {{
+    range.Quotes
+  }}
+  <tr>
+    <td>
+      <a href="/quote?id={{.ID}}">{{.Author}}</a>
+    </td>
+    <td>{{.Created}}</td>
+    <td>#{{.ID}}</td>
+  </tr>
+  {{
+    end
+  }}
+</table>
+{{else}}
 <p>Nothing is here right now</p>
+{{ end }}
 {{ end }}

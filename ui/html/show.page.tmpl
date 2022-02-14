@@ -3,14 +3,16 @@
 {{define "title"}}Quote #{{.Quote.ID}}{{ end }}
 
 {{define "main"}}
+{{ with.Quote }}
 <div class="quote">
   <div class="metadata">
-    <strong>{{.Quote.Author}}</strong>
-    <span>#{{.Quote.ID}}</span>
+    <strong>{{.Author}}</strong>
+    <span>#{{.ID}}</span>
   </div>
-  <pre><code>{{.Quote.Quote}}</code></pre>
+  <pre><code>{{.Quote}}</code></pre>
   <div class="metadata">
-    <time>Created: {{.Quote.Created}}</time>
+    <time>Created: {{.Created}}</time>
   </div>
 </div>
+{{ end }}
 {{ end }}

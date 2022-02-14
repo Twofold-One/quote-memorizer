@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -23,9 +22,11 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, quote := range q {
-		fmt.Fprintf(w, "%v\n", quote)
-	}
+	app.render(w, r, "home.page.tmpl", &templateData{
+		Quotes: q,
+	})
+
+	// data := &templateData{Quotes: q}
 
 	// files := []string{
 	// 	"./ui/html/home.page.tmpl",
@@ -39,7 +40,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	// err = ts.Execute(w, nil)
+	// err = ts.Execute(w, data)
 	// if err != nil {
 	// 	app.serverError(w, err)
 	// }
@@ -63,24 +64,28 @@ func (app *application) showQuote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := &templateData{Quote: q}
+	app.render(w, r, "show.page.tmpl", &templateData{
+		Quote: q,
+	})
 
-	files := []string{
-	"./ui/html/show.page.tmpl",
-	"./ui/html/base.layout.tmpl",
-	"./ui/html/footer.partial.tmpl",
-	}
+	// data := &templateData{Quote: q}
 
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
+	// files := []string{
+	// "./ui/html/show.page.tmpl",
+	// "./ui/html/base.layout.tmpl",
+	// "./ui/html/footer.partial.tmpl",
+	// }
 
-	err = ts.Execute(w, data)
-	if err != nil {
-		app.serverError(w, err)
-	}
+	// ts, err := template.ParseFiles(files...)
+	// if err != nil {
+	// 	app.serverError(w, err)
+	// 	return
+	// }
+
+	// err = ts.Execute(w, data)
+	// if err != nil {
+	// 	app.serverError(w, err)
+	// }
 }
 
 // createQuote is quote creation handler function.
